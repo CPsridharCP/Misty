@@ -1,0 +1,8 @@
+{
+  "UniqueId": "cb6bf87b-1a5a-4d67-956a-1dfcd5a54006",
+  "Name": "hot_cold",
+  "Capabilities": [ "display","speaker" ],
+  "ManualOnlySkill": false,
+  "Language": "javascript",
+  "BroadcastMode": "debug"
+}
