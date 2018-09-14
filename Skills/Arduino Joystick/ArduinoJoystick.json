@@ -1,0 +1,8 @@
+{
+  "UniqueId": "bfc8f791-b669-4e03-a50e-8cc39f17b953",
+  "Name": "ArduinoJoystick",
+  "Capabilities": [ "display","locomotion", "speaker"],
+  "ManualOnlySkill": false,
+  "Language": "javascript",
+  "BroadcastMode": "debug"
+}
