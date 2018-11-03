@@ -1,27 +1,20 @@
-function Activate() {
-	misty.Debug("Starting Read/Write Uart skill #2!!");
 
-	misty.Set("current_image_index", 0);
-	misty.Set("current_audio_index", 0);
+misty.Debug("Starting Read/Write Uart skill #2!!");
 
-	misty.AddReturnProperty("StringMessage", "StringMessage");
-	misty.RegisterEvent("StringMessage", "ReadBackPackUart_Callback", "StringMessage", 0, true);
+misty.Set("current_image_index", 0);
+misty.Set("current_audio_index", 0);
 
-}
+misty.AddReturnProperty("StringMessage", "StringMessage");
+misty.RegisterEvent("StringMessage", "StringMessage", 0, true);
 
-function Deactivate() {
-	misty.UnregisterEvent("StringMessage");
-}
 
-/* Callbacks */
-
-function ReadBackPackUart_Callback() {	
-	var data = misty.GetEventData("StringMessage");
+function _StringMessage(data) {	
+	//misty.Debug(JSON.parse(data.AdditionalResults[0].Message).v_analog);
 	
 	try{
 		if(data !== undefined && data !== null) {
-			var parsedData = JSON.parse(data);
-			var obj = JSON.parse(parsedData.AdditionalResults[0].Message);
+			//var parsedData = JSON.parse(data);
+			var obj = JSON.parse(data.AdditionalResults[0].Message);
 			
 			var up_button    = obj.up;
 			var down_button  = obj.down;

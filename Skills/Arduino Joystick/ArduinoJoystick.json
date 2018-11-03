@@ -3,6 +3,9 @@
   "Name": "ArduinoJoystick",
   "Capabilities": [ "display","locomotion", "speaker"],
   "ManualOnlySkill": false,
+  "StartupRules": ["Startup"],
   "Language": "javascript",
-  "BroadcastMode": "debug"
+  "BroadcastMode": "debug",
+  "TimeoutInSeconds": 36000,
+  "CleanupOnCancel": true
 }
