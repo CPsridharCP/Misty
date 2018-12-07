@@ -1,0 +1,11 @@
+{
+    "UniqueId": "f23b124d-998b-4b80-9c40-fde4db562e1c",
+    "Name": "IntruderAlert",
+    "Capabilities": [ "display"],
+    "ManualOnlySkill": false,
+    "StartupRules": ["Manual"],
+    "Language": "javascript",
+    "BroadcastMode": "debug",
+    "TimeoutInSeconds": 36000,
+    "CleanupOnCancel": true
+  }
