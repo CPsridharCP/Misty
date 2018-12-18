@@ -18,9 +18,9 @@ function _FaceRec(data){
             if (misty.Get("falseAlarm")>3){        
                 misty.UnregisterEvent("FaceRec");
                 misty.Debug("Intruder Detected !!");
-                misty.SendExternalRequest("POST", "https://maker.ifttt.com","/trigger/blink_intruder/with/key/cfconLr0jZT4qT6mTRKImX",null,null,"{}");
-                misty.SendExternalRequest("POST", "https://maker.ifttt.com","/trigger/text_intruder/with/key/cfconLr0jZT4qT6mTRKImX",null,null,"{}");
-                misty.SendExternalRequest("POST", "https://maker.ifttt.com","/trigger/switch_intruder_on/with/key/cfconLr0jZT4qT6mTRKImX",null,null,"{}");
+                misty.SendExternalRequest("POST", "https://maker.ifttt.com/trigger/blink_intruder/with/key/cfconLr0jZT4qT6mTRKImX",null,null,null,"{}");
+                misty.SendExternalRequest("POST", "https://maker.ifttt.com/trigger/text_intruder/with/key/cfconLr0jZT4qT6mTRKImX",null,null,null,"{}");
+                misty.SendExternalRequest("POST", "https://maker.ifttt.com/trigger/switch_intruder_on/with/key/cfconLr0jZT4qT6mTRKImX",null,null,null,"{}");
                 misty.Set("StartTime",(new Date()).toUTCString());
                 misty.Set("Initiated",true);
                 misty.ChangeDisplayImage("Disdainful.png");
@@ -49,7 +49,7 @@ while (true) {
         var secondsElapsed = Math.round(timeElapsed);
         misty.Debug(secondsElapsed);
         if (secondsElapsed >= 14){
-            misty.SendExternalRequest("POST", "https://maker.ifttt.com","/trigger/switch_intruder_off/with/key/cfconLr0jZT4qT6mTRKImX",null,null,"{}");
+            misty.SendExternalRequest("POST", "https://maker.ifttt.com/trigger/switch_intruder_off/with/key/cfconLr0jZT4qT6mTRKImX",null,null,null,"{}");
             registerFaceRec();
             misty.Set("Initiated",false);
             misty.ChangeDisplayImage("Homeostasis.png");
