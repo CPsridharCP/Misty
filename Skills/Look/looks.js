@@ -3,6 +3,11 @@ misty.Debug("Starting Looks !!");
 misty.Set("pitch", 0.0);
 misty.Set("yaw", 0.0);
 
+misty.Set("faceDetectedAt", (new Date()).toUTCString());
+misty.Set("lookAround", true);
+misty.Set("lookStartTime",(new Date()).toUTCString());
+misty.Set("timeInLook",6.0);
+
 misty.Debug("Centering Head");
 misty.MoveHeadPosition(0, 0, 0, 100);
 misty.Pause(3000);
@@ -16,10 +21,15 @@ function registerFaceFollow(){
 	misty.RegisterEvent("FaceFollow", "ComputerVision", 400, true);
 }
 
+// -----------------------------Face Follow--------------------------------------------------------
+
 function _FaceFollow(data){
     
     try{
-        var bearing = data.PropertyTestResults[0].PropertyParent.Bearing * 0.3 * 0.2;
+		// TODO Turn off Look Around
+		misty.Set("lookAround", false);
+
+        var bearing = data.PropertyTestResults[0].PropertyParent.Bearing * 0.25 * 0.2;
 		var elevation = data.PropertyTestResults[0].PropertyParent.Elevation * 0.3 * 0.2;
 		
 		bearing = min_increment(bearing);
@@ -38,12 +48,14 @@ function _FaceFollow(data){
 		if (Math.sign(to_yaw) == Math.sign(bearing)){
 			misty.SetHeadPosition("yaw", to_yaw, 100);
 		}
-		
+
 		misty.Debug(bearing+" , "+elevation);
 		//misty.Debug(to_yaw+" , "+to_pitch);
         //misty.MoveHeadPosition(to_pitch, 0, to_yaw, 100);
         misty.Set("pitch", to_pitch);
-        misty.Set("yaw", to_yaw);
+		misty.Set("yaw", to_yaw);
+		
+		misty.Set("faceDetectedAt", (new Date()).toUTCString());
 
     } catch (err) {
         misty.Debug("Some Error");
@@ -54,18 +66,20 @@ function set_in_range(value){
 	return Math.min((Math.max(value,-5.0)),5.0);
 }
 
-// SKIP FIRST FLIP IN DIRECTION
-
 function min_increment(value){
-	if (Math.abs(value) > 0.2){
+
+	if (Math.abs(value) <= 0.2) {
+		
+		return 0.0;
+
+	} else if (Math.abs(value) > 0.2){
+		
 		return 0.2*Math.sign(value);
 	}
-	else if (Math.abs(value) <= 0.2) {
-		return 0.0;
-	}
+	
 }
 
-//------
+//-------------------------Blink--------------------------------------------------------
 
 misty.Set("blinkStartTime",(new Date()).toUTCString());
 misty.Set("timeBetweenBlink",5);
@@ -77,25 +91,49 @@ function blink_now(){
     misty.Pause(300);
     misty.ChangeDisplayImage("Homeostasis.png");
 }
+
+//-------------------------Look Around-----------------------------------------------------
+
+function look_around(){
+	misty.Debug("LOOKING AROUND");
+    misty.Set("lookStartTime",(new Date()).toUTCString());
+    misty.Set("timeInLook",getRandomInt(5, 10));
+    misty.MoveHeadPosition(gaussianRandom(-5,5), gaussianRandom(-5,5), gaussianRandom(-5,5), 100);
+}
+
  
-// -------
+// ------------------------Loop----------------------------------------------------------
 
 while (true) {
 	misty.Pause(100);
 
-    var timeElapsed = new Date() - new Date(misty.Get("blinkStartTime"));
-    timeElapsed /= 1000;
-    var secondsElapsed = Math.round(timeElapsed);
-    //misty.Debug(secondsElapsed);
-    if (secondsElapsed > misty.Get("timeBetweenBlink")){
+    if (secondsPast(misty.Get("blinkStartTime")) > misty.Get("timeBetweenBlink")){
         blink_now();
 	}
+
+	if (!misty.Get("lookAround") && secondsPast(misty.Get("faceDetectedAt")) > 10.0){
+		misty.Set("lookAround", true);
+	}
+
+	if (misty.Get("lookAround")){
+		if (secondsPast(misty.Get("lookStartTime")) > misty.Get("timeInLook")){
+			look_around();
+		}
+	}
+	
+}
+
+// -----------------------Support Functions------------------------------------------------
+
+function secondsPast(value){
+	var timeElapsed = new Date() - new Date(value);
+    timeElapsed /= 1000;
+    return Math.round(timeElapsed); // seconds
 }
 
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
-
 
 function gaussianRand() {
     var u = 0.0, v = 0.0;
