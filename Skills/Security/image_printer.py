@@ -108,8 +108,10 @@ while True:
             os.system("echo Alarm Triggered")
             prepare_image()
             switch_to_printer_network()
+            time.sleep(15)
             print_image()
             switch_to_robot_network()
+            time.sleep(10)
 
     except KeyboardInterrupt:
         print ("Program Stopped")
