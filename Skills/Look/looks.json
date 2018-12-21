@@ -1,0 +1,11 @@
+{
+  "UniqueId": "644e02d7-9391-4d84-8af5-3baa85bf42ac",
+  "Name": "looks",
+  "Capabilities": [ "display","locomotion", "speaker"],
+  "ManualOnlySkill": false,
+  "StartupRules": ["Manual"],
+  "Language": "javascript",
+  "BroadcastMode": "debug",
+  "TimeoutInSeconds": 36000,
+  "CleanupOnCancel": true
+}
