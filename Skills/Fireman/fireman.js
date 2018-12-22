@@ -1,6 +1,10 @@
 
 misty.Debug("Starting Fire Security!!");
 
+misty.Debug("Centering Head");
+misty.MoveHeadPosition(0, 0, 0, 100);
+misty.Pause(3000);
+
 misty.AddReturnProperty("StringMessage", "StringMessage");
 misty.RegisterEvent("StringMessage", "StringMessage", 0, true);
 
@@ -12,6 +16,18 @@ misty.Set("slope_down_count",0);
 misty.Set("slope_up_count",0);
 misty.Set("wait_to_threshold", true);
 
+misty.Set("eyeMemory", "Homeostasis.png");
+misty.Set("blinkStartTime",(new Date()).toUTCString());
+misty.Set("timeBetweenBlink",5);
+
+function blink_now(){
+    misty.Set("blinkStartTime",(new Date()).toUTCString());
+    misty.Set("timeBetweenBlink",getRandomInt(2, 8));
+    misty.ChangeDisplayImage("blinkMisty.png");
+    misty.Pause(300);
+    misty.ChangeDisplayImage(misty.Get("eyeMemory"));
+}
+
 function _StringMessage(data) {	
 	
 	try{
@@ -20,7 +36,7 @@ function _StringMessage(data) {
 
 			var obj = JSON.parse(data.AdditionalResults[0].Message);
 			var temp    = obj.temperature;
-			let threshold = 26.0;
+			let threshold = 35.0;
 			var alarm = 0;
 
 			if (misty.Get("wait_to_threshold")){
@@ -44,7 +60,7 @@ function _StringMessage(data) {
 			if (temp>threshold && !misty.Get("wait_to_threshold")){
 	
 				alarm = 1;
-
+		
 				if (misty.Get("alarm")){
 
 					// While in alarm, if temp drops down 5 times stop alarm and wait to go below threshold
@@ -80,6 +96,12 @@ function _StringMessage(data) {
 				misty.Set("alarm",false);
 			}
 
+			if (alarm==1){;
+				misty.Set("eyeMemory", "Disdainful.png");
+			} else {
+				misty.Set("eyeMemory", "Homeostasis.png");
+			}
+
 			misty.SendExternalRequest("POST", "https://dweet.io/dweet/for/misty-fire-security",null,null,null,"{\"temperature\":"+temp.toString()+",\"alarm\":"+alarm.toString()+"}");
 			misty.Debug(temp);
 
@@ -94,7 +116,20 @@ function _StringMessage(data) {
 }
 
 while (true) {
-    misty.Pause(50);
+	misty.Pause(50);
+	if (secondsPast(misty.Get("blinkStartTime")) > misty.Get("timeBetweenBlink")){
+        blink_now();
+	}
+}
+
+function secondsPast(value){
+	var timeElapsed = new Date() - new Date(value);
+    timeElapsed /= 1000;
+    return Math.round(timeElapsed); // seconds
+}
+
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 function map (num, in_min, in_max, out_min, out_max) {

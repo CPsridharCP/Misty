@@ -7,6 +7,8 @@ misty.Set("faceDetectedAt", (new Date()).toUTCString());
 misty.Set("lookAround", true);
 misty.Set("lookStartTime",(new Date()).toUTCString());
 misty.Set("timeInLook",6.0);
+misty.Set("touchAt", (new Date()).toUTCString());
+misty.Set("inTouch",false);
 
 misty.Debug("Centering Head");
 misty.MoveHeadPosition(0, 0, 0, 100);
@@ -19,6 +21,68 @@ registerFaceFollow();
 function registerFaceFollow(){
 	misty.AddPropertyTest("FaceFollow", "PersonName", "exists", "", "string");
 	misty.RegisterEvent("FaceFollow", "ComputerVision", 400, true);
+}
+
+registerCaptouch();
+function registerCaptouch(){
+	misty.AddReturnProperty("Touched", "sensorName");
+	misty.RegisterEvent("Touched", "TouchSensor", 250 ,true);
+}
+
+// -----------------------------Cap Touch--------------------------------------------------------
+
+misty.Set("touchTimeout", 3);
+
+function _Touched(data) {
+
+	if (!misty.Get("inTouch")){
+		misty.Set("inTouch", true);
+		misty.UnregisterEvent("FaceFollow");
+		misty.Set("touchAt", (new Date()).toUTCString());
+
+		var sensor = data.AdditionalResults[0];
+		misty.Debug(sensor);
+
+		switch(sensor) {
+			case "CapTouch_HeadFront":
+				misty.PlayAudioClip("chin_amp.wav");
+				misty.Set("eyeMemory", "Happy.png");
+				misty.ChangeDisplayImage("Happy.png");
+				misty.Set("blinkStartTime",(new Date()).toUTCString());
+				misty.Set("timeBetweenBlink",3);
+				//blink_now();
+				misty.Set("touchTimeout", 6);
+				misty.SetHeadPosition("roll", -4.5, 100);
+			 	break;
+			case "CapTouch_HeadBack":
+				misty.PlayAudioClip("head_amp.wav");
+				misty.Set("eyeMemory", "Wonder.png");
+				misty.ChangeDisplayImage("Wonder.png");
+				misty.Set("blinkStartTime",(new Date()).toUTCString());
+				misty.Set("timeBetweenBlink",3);
+				//blink_now();
+				misty.Set("touchTimeout", 6);
+				misty.SetHeadPosition("roll", 4.5, 100);
+			 	break;
+			default:
+				misty.PlayAudioClip("043-Bbbaaah.wav");
+				misty.ChangeDisplayImage("Angry.png");
+				misty.Set("eyeMemory", "Angry.png");
+				misty.Set("blinkStartTime",(new Date()).toUTCString());
+				misty.Set("timeBetweenBlink",3);
+				misty.Set("touchTimeout", 3);
+
+			  // code block
+		  }
+
+		
+	}
+ //    CapTouch_Scruff
+ //    CapTouch_HeadTop
+ //    CapTouch_HeadBack
+ //    CapTouch_HeadFront
+ //    CapTouch_ChinLeft
+ //    CapTouch_ChinRight
 }
 
 // -----------------------------Face Follow--------------------------------------------------------
@@ -80,7 +144,7 @@ function min_increment(value){
 }
 
 //-------------------------Blink--------------------------------------------------------
-
+misty.Set("eyeMemory", "Homeostasis.png");
 misty.Set("blinkStartTime",(new Date()).toUTCString());
 misty.Set("timeBetweenBlink",5);
 
@@ -89,7 +153,7 @@ function blink_now(){
     misty.Set("timeBetweenBlink",getRandomInt(2, 8));
     misty.ChangeDisplayImage("blinkMisty.png");
     misty.Pause(300);
-    misty.ChangeDisplayImage("Homeostasis.png");
+    misty.ChangeDisplayImage(misty.Get("eyeMemory"));
 }
 
 //-------------------------Look Around-----------------------------------------------------
@@ -115,10 +179,17 @@ while (true) {
 		misty.Set("lookAround", true);
 	}
 
-	if (misty.Get("lookAround")){
+	if (misty.Get("lookAround") && !misty.Get("inTouch")){
 		if (secondsPast(misty.Get("lookStartTime")) > misty.Get("timeInLook")){
 			look_around();
 		}
+	}
+
+	if (misty.Get("inTouch") && secondsPast(misty.Get("touchAt")) > misty.Get("touchTimeout")){
+		misty.Set("inTouch", false);
+		misty.Set("eyeMemory", "Homeostasis.png");
+		misty.SetHeadPosition("roll", 0, 100);
+		registerFaceFollow();
 	}
 	
 }
