@@ -1,7 +1,7 @@
 {
   "UniqueId": "5436ef6e-d0c7-48c3-b792-2f043806006b",
   "Name": "fireman",
-  "Capabilities": [ "display","locomotion", "speaker"],
+  "Capabilities": [ "display", "speaker"],
   "ManualOnlySkill": false,
   "StartupRules": ["Manual"],
   "Language": "javascript",

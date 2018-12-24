@@ -2,7 +2,7 @@
 misty.Debug("Starting Fire Security!!");
 
 misty.Debug("Centering Head");
-misty.MoveHeadPosition(0, 0, 0, 100);
+misty.MoveHeadPosition(0, 0, -4.5, 100);
 misty.Pause(3000);
 
 misty.AddReturnProperty("StringMessage", "StringMessage");
@@ -19,6 +19,8 @@ misty.Set("wait_to_threshold", true);
 misty.Set("eyeMemory", "Homeostasis.png");
 misty.Set("blinkStartTime",(new Date()).toUTCString());
 misty.Set("timeBetweenBlink",5);
+
+misty.Set("pastState", 0);
 
 function blink_now(){
     misty.Set("blinkStartTime",(new Date()).toUTCString());
@@ -96,10 +98,16 @@ function _StringMessage(data) {
 				misty.Set("alarm",false);
 			}
 
-			if (alarm==1){;
-				misty.Set("eyeMemory", "Disdainful.png");
-			} else {
-				misty.Set("eyeMemory", "Homeostasis.png");
+			if (misty.Get("pastState")!=alarm){
+				
+				if (alarm==1){;
+					misty.Set("eyeMemory", "Disdainful.png");
+					misty.SendExternalRequest("POST", "https://maker.ifttt.com/trigger/switch_fireman_on/with/key/cfconLr0jZT4qT6mTRKImX",null,null,null,"{}");
+				} else {
+					misty.Set("eyeMemory", "Homeostasis.png");
+					misty.SendExternalRequest("POST", "https://maker.ifttt.com/trigger/switch_fireman_off/with/key/cfconLr0jZT4qT6mTRKImX",null,null,null,"{}");
+				}
+				misty.Set("pastState", alarm);
 			}
 
 			misty.SendExternalRequest("POST", "https://dweet.io/dweet/for/misty-fire-security",null,null,null,"{\"temperature\":"+temp.toString()+",\"alarm\":"+alarm.toString()+"}");
