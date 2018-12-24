@@ -31,6 +31,7 @@ def prepare_image():
     cv2.imwrite('Intruder.jpeg',output)
 
 def switch_to_printer_network():
+    led2.on()
     start = time.time()
     out = subprocess.check_output("wpa_cli -i wlan0 select_network $(wpa_cli -i wlan0 list_networks | grep INSTAX-01558927 | cut -f 1)",shell=True)
     if out == b'OK\n':
@@ -39,13 +40,15 @@ def switch_to_printer_network():
         while out != b'INSTAX-01558927\n':
             os.system("echo Waiting for printer to get connected")
             out= subprocess.check_output("iwgetid wlan0 --raw", shell = True)
-            if time.time()-start > 10:
+            if time.time()-start > 15:
                 switch_to_printer_network()
                 break
             time.sleep(0.5)
         os.system("echo Connected to Printer Network")
+        time.sleep(15)
     else:
         # Reattempt connection
+        time.sleep(5)
         switch_to_printer_network()
         os.system("echo Reattempting connecting to printer")
 
@@ -63,18 +66,22 @@ def switch_to_robot_network():
                 break
             time.sleep(0.5)
         os.system("echo Connected to Robot Network")
+        time.sleep(10)
     else:
         # Reattempt connection
+        time.sleep(5)
         switch_to_robot_network()
         os.system("echo Reattempting connecting to Robot Network")
 
 def print_image():
     led.blink(0.1)
+    led2.off()
     os.system("echo Attempting to print")
     x = os.system("instax-print Intruder.jpeg -i 1111")
     if x != 0:
         out= subprocess.check_output("iwgetid wlan0 --raw", shell = True)
         if out != b'INSTAX-01558927\n':
+            led2.blink(0.1)
             switch_to_printer_network()
         print_image()
     led.on()
@@ -85,7 +92,9 @@ if out != b'TP-Link_5958_5G\n':
     switch_to_robot_network()
 
 led = LED(17)
+led2 = LED(5)
 led.on()
+led2.off()
 
 # Start with a status or make one
 try:
@@ -108,10 +117,8 @@ while True:
             os.system("echo Alarm Triggered")
             prepare_image()
             switch_to_printer_network()
-            time.sleep(15)
             print_image()
             switch_to_robot_network()
-            time.sleep(10)
 
     except KeyboardInterrupt:
         print ("Program Stopped")
@@ -119,6 +126,4 @@ while True:
 
     except:
         pass
-
-
 
