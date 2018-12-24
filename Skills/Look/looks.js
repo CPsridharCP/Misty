@@ -2,8 +2,11 @@ misty.Debug("Starting Looks !!");
 
 misty.Set("pitch", 0.0);
 misty.Set("yaw", 0.0);
+misty.Set("roll", 0.0);
 
 misty.Set("faceDetectedAt", (new Date()).toUTCString());
+misty.Set("pastElevation", 0.0);
+misty.Set("pastBearing", 0.0);
 misty.Set("lookAround", true);
 misty.Set("lookStartTime",(new Date()).toUTCString());
 misty.Set("timeInLook",6.0);
@@ -75,7 +78,6 @@ function _Touched(data) {
 			  // code block
 		  }
 
-		
 	}
  //    CapTouch_Scruff
  //    CapTouch_HeadTop
@@ -87,14 +89,20 @@ function _Touched(data) {
 
 // -----------------------------Face Follow--------------------------------------------------------
 
+//misty.Set("yawPtimeout", (new Date()).toUTCString());
+//misty.Set("yawNtimeout", (new Date()).toUTCString());
+
+misty.Set("setPitch", 0.0);
+misty.Set("setYaw", 0.0);
+
 function _FaceFollow(data){
     
     try{
 		// TODO Turn off Look Around
 		misty.Set("lookAround", false);
 
-        var bearing = data.PropertyTestResults[0].PropertyParent.Bearing * 0.25 * 0.2;
-		var elevation = data.PropertyTestResults[0].PropertyParent.Elevation * 0.3 * 0.2;
+        var bearing = data.PropertyTestResults[0].PropertyParent.Bearing * 0.25 * 0.1;
+		var elevation = data.PropertyTestResults[0].PropertyParent.Elevation * 0.3 * 0.1;
 		
 		bearing = min_increment(bearing);
 		elevation = min_increment(elevation);
@@ -104,16 +112,23 @@ function _FaceFollow(data){
 		to_pitch = set_in_range(to_pitch + elevation);
 		to_yaw = set_in_range(to_yaw + bearing);
 
-		// Avoiding Oscillations - the next two IFs
-		if (Math.sign(to_pitch) == Math.sign(elevation)){
-			misty.SetHeadPosition("pitch", to_pitch, 100);
-		}
+		// Avoiding Oscillations - the next two IFs ______ THIS IS WRONG
 
-		if (Math.sign(to_yaw) == Math.sign(bearing)){
+		var pastBearing = misty.Get("pastBearing");
+		var pastElevation = misty.Get("pastElevation");
+		if (Math.sign(pastBearing) == Math.sign(bearing) && Math.abs(misty.Get("setYaw")-to_yaw)>=0.5){
 			misty.SetHeadPosition("yaw", to_yaw, 100);
+			misty.Set("setYaw", to_yaw);
+
+		}
+		if (Math.sign(pastElevation) == Math.sign(elevation) && Math.abs(misty.Get("setPitch")-to_pitch)>=0.5){
+			misty.SetHeadPosition("pitch", to_pitch, 100);
+			misty.Set("setPitch", to_pitch);
 		}
 
-		misty.Debug(bearing+" , "+elevation);
+		misty.Debug(to_yaw+" , "+to_pitch);
+		misty.Set("pastElevation", elevation);
+		misty.Set("pastBearing", bearing);       
 		//misty.Debug(to_yaw+" , "+to_pitch);
         //misty.MoveHeadPosition(to_pitch, 0, to_yaw, 100);
         misty.Set("pitch", to_pitch);
@@ -132,13 +147,13 @@ function set_in_range(value){
 
 function min_increment(value){
 
-	if (Math.abs(value) <= 0.2) {
+	if (Math.abs(value) <= 0.15) {
 		
 		return 0.0;
 
-	} else if (Math.abs(value) > 0.2){
+	} else if (Math.abs(value) > 0.15){
 		
-		return 0.2*Math.sign(value);
+		return 0.15*Math.sign(value);
 	}
 	
 }
