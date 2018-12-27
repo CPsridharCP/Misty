@@ -2,7 +2,6 @@ misty.Debug("Intruder alert skill started");
 
 misty.MoveHeadPosition(0, 0, 0, 100);
 
-
 misty.Set("StartTime",(new Date()).toUTCString());
 misty.Set("Initiated",false);
 misty.Set("falseAlarm", 0);
@@ -10,17 +9,11 @@ misty.ChangeDisplayImage("Homeostasis.png");
 
 flags_on();
 
-// Audio Playback Flags
-function flags_on(){
-    misty.Set("hey", true);
-    //misty.Set("aystbh",true);
-    misty.Set("CP", true);
-    misty.Set("IAN", true);
-    misty.Set("gtcu",true);
-}
-
 misty.StartFaceRecognition();
 registerFaceRec();
+
+
+// ------------------------------------------Intruder Check-----------------------------------------------------
 
 function _FaceRec(data){
     //misty.Debug("IN");
@@ -28,10 +21,10 @@ function _FaceRec(data){
         misty.Debug(data.PropertyTestResults[0].PropertyParent.Distance);
         if (data.PropertyTestResults[0].PropertyParent.Distance < 180){
 
-            if (misty.Get("hey")){
-                misty.PlayAudioClip("hey.wav",0,1000);
-                misty.Set("hey", false);
-            }
+            // if (misty.Get("hey")){
+            //     misty.PlayAudioClip("hey.wav",0,1000);
+            //     misty.Set("hey", false);
+            // }
 
             if (data.PropertyTestResults[0].PropertyValue == "unknown person"){
                 var count = misty.Get("falseAlarm");
@@ -39,8 +32,8 @@ function _FaceRec(data){
                 misty.Debug("FalseAlarm_Avoided");
                 if (misty.Get("falseAlarm")>3){ 
                     misty.UnregisterEvent("FaceRec");       
-                    misty.PlayAudioClip("hey.wav",0,1500);
-                    misty.PlayAudioClip("aystbh.wav",1500,0);
+                    misty.PlayAudioClip("hey.wav",0,500);
+                    misty.PlayAudioClip("aystbh.wav",0,1000);
                     //misty.Set("aystbh", false);
                     misty.Pause(1000);
                     misty.Debug("Intruder Detected !!");
@@ -55,6 +48,12 @@ function _FaceRec(data){
                     misty.Set("eyeMemory", "Disdainful.png");
                     blink_now();
                     misty.Set("falseAlarm", 0);
+
+                    // Register Bump Sensors
+                    registerBumpSensors();
+
+                    // Raise Red LED
+
                 }
             } else {
                 
@@ -66,8 +65,8 @@ function _FaceRec(data){
                         if (misty.Get("CP")){
                             misty.UnregisterEvent("FaceRec");
                             misty.Set("CP",false);
-                            misty.PlayAudioClip("hi_CP.wav");
-                            misty.PlayAudioClip("gtcu.wav",0,4000);
+                            misty.PlayAudioClip("hi_CP.wav",1500,0);
+                            misty.PlayAudioClip("gtcu.wav",0,1500);
                             registerFaceRec();
                         }
                         break;
@@ -75,8 +74,8 @@ function _FaceRec(data){
                         if (misty.Get("IAN")){
                             misty.UnregisterEvent("FaceRec");
                             misty.Set("IAN",false);
-                            misty.PlayAudioClip("hi_IAN.wav");
-                            misty.PlayAudioClip("gtcu.wav",0,4000);
+                            misty.PlayAudioClip("hi_IAN.wav",1500,0);
+                            misty.PlayAudioClip("gtcu.wav",0,1500);
                             registerFaceRec();
                         }
                         break;
@@ -86,7 +85,6 @@ function _FaceRec(data){
                             misty.Set("gtcu",false);
                         }
                 }
-        
             }
 
         } else {
@@ -98,11 +96,31 @@ function _FaceRec(data){
     }
 }
 
-function _SendExternalRequest(data_response) {
-    // Assign variables to grab the city name and current temperature
-        misty.Debug(JSON.stringify(data_response));
-}
+// ------------------------------------------BumpSensors------------------------------------------------
 
+function _Bumped(data) {
+
+    misty.UnregisterEvent("Bumped");
+    
+    var sensor = data.AdditionalResults[0];
+    misty.Debug(sensor);
+
+    if (sensor == "Bump_RearRight" || sensor == "Bump_RearLeft"){
+        
+        misty.Set("eyeMemory", "Homeostasis.png");
+        flags_on();
+        misty.SendExternalRequest("POST", "https://maker.ifttt.com/trigger/switch_intruder_off/with/key/cfconLr0jZT4qT6mTRKImX",null,null,null,"{}");
+        misty.Set("Initiated",false);
+        misty.Set("StartTime",(new Date()).toUTCString());
+        registerFaceRec();
+
+    } else {
+        registerBumpSensors();
+    }
+
+ }
+
+// ------------------------------------------Blink-----------------------------------------------------
 
 misty.Set("eyeMemory", "Homeostasis.png");
 misty.Set("blinkStartTime",(new Date()).toUTCString());
@@ -116,6 +134,7 @@ function blink_now(){
     misty.ChangeDisplayImage(misty.Get("eyeMemory"));
 }
 
+// ------------------------------------------Loop-----------------------------------------------------
 
 while (true) {
     
@@ -123,12 +142,9 @@ while (true) {
         var timeElapsed = new Date() - new Date(misty.Get("StartTime"));
         timeElapsed /= 1000;
         var secondsElapsed = Math.round(timeElapsed);
-        misty.Debug(secondsElapsed);
+        // misty.Debug(secondsElapsed);
         if (secondsElapsed >= 30){
-            flags_on();
             misty.SendExternalRequest("POST", "https://maker.ifttt.com/trigger/switch_intruder_off/with/key/cfconLr0jZT4qT6mTRKImX",null,null,null,"{}");
-            registerFaceRec();
-            misty.Set("Initiated",false);
             misty.Set("eyeMemory", "Homeostasis.png");
             //misty.ChangeDisplayImage("Homeostasis.png");
         } 
@@ -137,8 +153,9 @@ while (true) {
     if (secondsPast(misty.Get("blinkStartTime")) > misty.Get("timeBetweenBlink")){
         blink_now();
 	}
-
 }
+
+// ------------------------------------------Supporting Functions-----------------------------------------------------
 
 function secondsPast(value){
 	var timeElapsed = new Date() - new Date(value);
@@ -153,4 +170,21 @@ function getRandomInt(min, max) {
 function registerFaceRec(){
     misty.AddPropertyTest("FaceRec", "PersonName", "exists", "", "string");
     misty.RegisterEvent("FaceRec", "ComputerVision", 1000, true);
+}
+
+function registerBumpSensors(){
+    misty.AddReturnProperty("Bumped", "sensorName",);
+    misty.RegisterEvent("Bumped", "BumpSensor", 0 ,true);
+}
+
+function _SendExternalRequest(data_response) {
+    misty.Debug(JSON.stringify(data_response));
+}
+
+function flags_on(){
+    misty.Set("hey", true);
+    //misty.Set("aystbh",true);
+    misty.Set("CP", true);
+    misty.Set("IAN", true);
+    misty.Set("gtcu",true);
 }
