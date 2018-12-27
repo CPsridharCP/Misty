@@ -1,3 +1,18 @@
+/*
+*    Copyright 2018 Misty Robotics, Inc.
+*    Licensed under the Apache License, Version 2.0 (the "License");
+*    you may not use this file except in compliance with the License.
+*    You may obtain a copy of the License at
+*
+*    http://www.apache.org/licenses/LICENSE-2.0
+*
+*    Unless required by applicable law or agreed to in writing, software
+*    distributed under the License is distributed on an "AS IS" BASIS,
+*    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*    See the License for the specific language governing permissions and
+*    limitations under the License.
+*/
+
 misty.Debug("Intruder alert skill started");
 
 misty.MoveHeadPosition(0, 0, 0, 100);
@@ -7,10 +22,16 @@ misty.Set("Initiated",false);
 misty.Set("falseAlarm", 0);
 misty.ChangeDisplayImage("Homeostasis.png");
 
+misty.Set("red", 148);
+misty.Set("green", 0);
+misty.Set("blue", 211);
+misty.ChangeLED(148, 0, 211);
+
 flags_on();
 
 misty.StartFaceRecognition();
-registerFaceRec();
+// registerFaceRec();
+registerBumpSensors();
 
 
 // ------------------------------------------Intruder Check-----------------------------------------------------
@@ -31,29 +52,35 @@ function _FaceRec(data){
                 misty.Set("falseAlarm",count+1);
                 misty.Debug("FalseAlarm_Avoided");
                 if (misty.Get("falseAlarm")>3){ 
-                    misty.UnregisterEvent("FaceRec");       
+                    misty.UnregisterEvent("FaceRec");
+                    misty.Set("StartTime",(new Date()).toUTCString());       
                     misty.PlayAudioClip("hey.wav",0,500);
                     misty.PlayAudioClip("aystbh.wav",0,1000);
                     //misty.Set("aystbh", false);
                     misty.Pause(1000);
                     misty.Debug("Intruder Detected !!");
+                    red_up();
                     misty.TakePicture(false, "Intruder", 1200, 1600, false, true);
+                    misty.MoveArmPosition("left", 6, 45);
+                    misty.SendExternalRequest("POST", "https://maker.ifttt.com/trigger/switch_intruder_on/with/key/cfconLr0jZT4qT6mTRKImX",null,null,null,"{}");
                     misty.SendExternalRequest("POST", "https://maker.ifttt.com/trigger/blink_intruder/with/key/cfconLr0jZT4qT6mTRKImX",null,null,null,"{}");
                     //misty.SendExternalRequest("POST", "https://maker.ifttt.com/trigger/text_intruder/with/key/cfconLr0jZT4qT6mTRKImX",null,null,null,"{}");
                     misty.SendExternalRequest("POST", "https://7jzrmzmsr5.execute-api.us-west-1.amazonaws.com/default/cp_python_learn_fn_name",null,null,null,"{}");
-                    misty.SendExternalRequest("POST", "https://maker.ifttt.com/trigger/switch_intruder_on/with/key/cfconLr0jZT4qT6mTRKImX",null,null,null,"{}");
                     misty.SendExternalRequest("POST", "https://dweet.io/dweet/for/misty",null,null,null,"{\"status\":\"Intruder_Alarrm_On\"}");
-                    misty.Set("StartTime",(new Date()).toUTCString());
+                    
                     misty.Set("Initiated",true);
                     misty.Set("eyeMemory", "Disdainful.png");
                     blink_now();
                     misty.Set("falseAlarm", 0);
+                    
+                    // pitch, roll, yaw
+                    misty.MoveHeadPosition(-1, -4, -3, 100,0,3000);
+                    misty.MoveHeadPosition(-1, 4, 3, 100,0,3000);
+                    misty.MoveHeadPosition(-1, 0, 0, 100,0,3000);
 
                     // Register Bump Sensors
                     registerBumpSensors();
-
-                    // Raise Red LED
-
+                    
                 }
             } else {
                 
@@ -101,23 +128,25 @@ function _FaceRec(data){
 function _Bumped(data) {
 
     misty.UnregisterEvent("Bumped");
-    
+    misty.Debug("BUMP PRESSED");
     var sensor = data.AdditionalResults[0];
     misty.Debug(sensor);
 
     if (sensor == "Bump_RearRight" || sensor == "Bump_RearLeft"){
         
+        misty.MoveHeadPosition(0, 0, 0, 100);
+        misty.MoveArmPosition("left", 0, 45);
+        
         misty.Set("eyeMemory", "Homeostasis.png");
         flags_on();
         misty.SendExternalRequest("POST", "https://maker.ifttt.com/trigger/switch_intruder_off/with/key/cfconLr0jZT4qT6mTRKImX",null,null,null,"{}");
         misty.Set("Initiated",false);
-        misty.Set("StartTime",(new Date()).toUTCString());
+        green_up();
         registerFaceRec();
-
+        
     } else {
         registerBumpSensors();
     }
-
  }
 
 // ------------------------------------------Blink-----------------------------------------------------
@@ -134,6 +163,62 @@ function blink_now(){
     misty.ChangeDisplayImage(misty.Get("eyeMemory"));
 }
 
+// ------------------------------------------LED changes-------------------------------------------------
+
+function green_up(){
+
+    var red = misty.Get("red")/10.0;
+    var green = misty.Get("green")/10.0;
+    var blue = misty.Get("blue")/10.0;
+    for (var i = 10; i >=0 ; i=i-1) { 
+        misty.ChangeLED(Math.floor(i*red),Math.floor(i*green),Math.floor(i*blue));
+        misty.Pause(50);
+    }
+    for (var i =0; i <=10 ; i=i+1) { 
+		misty.ChangeLED(0,Math.floor(i*20),0);
+		misty.Pause(50);
+    }
+    misty.Set("red", 0);
+    misty.Set("green", 200);
+    misty.Set("blue", 0);
+    
+}
+
+function red_up(){
+    var red = misty.Get("red")/10.0;
+    var green = misty.Get("green")/10.0;
+    var blue = misty.Get("blue")/10.0;
+    for (var i = 10; i >=0 ; i=i-1) { 
+        misty.ChangeLED(Math.floor(i*red),Math.floor(i*green),Math.floor(i*blue));
+        misty.Pause(50);
+    }
+    for (var i =0; i <=10 ; i=i+1) { 
+		misty.ChangeLED(Math.floor(i*20),0,0);
+		misty.Pause(50);
+    }
+    misty.Set("red", 200);
+    misty.Set("green", 0);
+    misty.Set("blue", 0);
+}
+
+function purple_up(){
+    var red = misty.Get("red")/10.0;
+    var green = misty.Get("green")/10.0;
+    var blue = misty.Get("blue")/10.0;
+    for (var i = 10; i >=0 ; i=i-1) { 
+        misty.ChangeLED(Math.floor(i*red),Math.floor(i*green),Math.floor(i*blue));
+        misty.Pause(50);
+    }
+    for (var i =0; i <=10 ; i=i+1) { 
+		misty.ChangeLED(Math.floor(i*14.8),0,Math.floor(i*21.1));
+		misty.Pause(50);
+    }
+    misty.Set("red", 148);
+    misty.Set("green", 0);
+    misty.Set("blue", 211);
+
+}
+
 // ------------------------------------------Loop-----------------------------------------------------
 
 while (true) {
@@ -146,6 +231,8 @@ while (true) {
         if (secondsElapsed >= 30){
             misty.SendExternalRequest("POST", "https://maker.ifttt.com/trigger/switch_intruder_off/with/key/cfconLr0jZT4qT6mTRKImX",null,null,null,"{}");
             misty.Set("eyeMemory", "Homeostasis.png");
+            misty.Set("Initiated",false);
+            purple_up();
             //misty.ChangeDisplayImage("Homeostasis.png");
         } 
     } else {}
@@ -174,7 +261,7 @@ function registerFaceRec(){
 
 function registerBumpSensors(){
     misty.AddReturnProperty("Bumped", "sensorName",);
-    misty.RegisterEvent("Bumped", "BumpSensor", 0 ,true);
+    misty.RegisterEvent("Bumped", "BumpSensor", 250 ,true);
 }
 
 function _SendExternalRequest(data_response) {
