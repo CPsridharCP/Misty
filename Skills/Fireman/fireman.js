@@ -26,7 +26,7 @@ function blink_now(){
     misty.Set("blinkStartTime",(new Date()).toUTCString());
     misty.Set("timeBetweenBlink",getRandomInt(2, 8));
     misty.ChangeDisplayImage("blinkMisty.png");
-    misty.Pause(300);
+    misty.Pause(200);
     misty.ChangeDisplayImage(misty.Get("eyeMemory"));
 }
 
