@@ -35,23 +35,19 @@ misty.Pause(3000);
 
 // Used for LED gradient changes
 misty.Set("pastState", "skillStarted");
-misty.Set("loop1", true);
+//misty.Set("loop1", true);
 misty.ChangeLED(0,0,0); //Purple
 
 //misty.StartFaceRecognition();
 misty.StartFaceDetection();
 registerFaceFollow();
-
-function registerFaceFollow(){
-	misty.AddPropertyTest("FaceFollow", "PersonName", "exists", "", "string");
-	misty.RegisterEvent("FaceFollow", "ComputerVision", 400, true);
-}
-
 registerCaptouch();
-function registerCaptouch(){
-	misty.AddReturnProperty("Touched", "sensorName");
-	misty.RegisterEvent("Touched", "TouchSensor", 250 ,true);
-}
+
+misty.Set("red", 148);
+misty.Set("green", 0);
+misty.Set("blue", 211);
+misty.ChangeLED(148, 0, 211);
+
 
 // -----------------------------Cap Touch--------------------------------------------------------
 
@@ -69,6 +65,7 @@ function _Touched(data) {
 
 		switch(sensor) {
 			case "CapTouch_HeadFront":
+				blue_up();
 				misty.PlayAudioClip("chin_amp.wav");
 				misty.Set("eyeMemory", "Happy.png");
 				misty.ChangeDisplayImage("Happy.png");
@@ -79,6 +76,7 @@ function _Touched(data) {
 				misty.SetHeadPosition("roll", -4.5, 100);
 			 	break;
 			case "CapTouch_HeadBack":
+				blue_up();
 				misty.PlayAudioClip("head_amp.wav");
 				misty.Set("eyeMemory", "Wonder.png");
 				misty.ChangeDisplayImage("Wonder.png");
@@ -89,6 +87,7 @@ function _Touched(data) {
 				misty.SetHeadPosition("roll", 4.5, 100);
 			 	break;
 			default:
+				red_up();
 				misty.PlayAudioClip("043-Bbbaaah.wav");
 				misty.ChangeDisplayImage("Angry.png");
 				misty.Set("eyeMemory", "Angry.png");
@@ -225,38 +224,71 @@ function look_around(){
 //--------------------------LED Gradients----------------------------------------------------
 
 function green_up(){
-	//PurpleDown
-	if (!misty.Get("loop1")){
-		for (var i = 10; i >=0 ; i=i-1) { 
-			misty.ChangeLED(Math.floor(i*14.8),0,Math.floor(i*21.1));
-			misty.Pause(50);
-		}
-	} else {
-		misty.Set("loop1", false);
-	}
-	//GrreenUp
-	for (var i =0; i <=10 ; i=i+1) { 
+	var red = misty.Get("red")/10.0;
+    var green = misty.Get("green")/10.0;
+    var blue = misty.Get("blue")/10.0;
+    for (var i = 10; i >=0 ; i=i-1) { 
+        misty.ChangeLED(Math.floor(i*red),Math.floor(i*green),Math.floor(i*blue));
+        misty.Pause(50);
+    }
+    for (var i =0; i <=10 ; i=i+1) { 
 		misty.ChangeLED(0,Math.floor(i*20),0);
 		misty.Pause(50);
-	}
+    }
+    misty.Set("red", 0);
+    misty.Set("green", 200);
+    misty.Set("blue", 0);
 }
 
 function purple_up(){
-	//GreenDown
-	if (!misty.Get("loop1")){
-		for (var i =10; i >=0 ; i=i-1) { 
-			misty.ChangeLED(0,Math.floor(i*20),0);
-			misty.Pause(50);
-		}
-	} else{
-		misty.Set("loop1", false);
-	}
-	//PurpleUp
-	for (var i = 0; i <=10 ; i=i+1) { 
+	var red = misty.Get("red")/10.0;
+    var green = misty.Get("green")/10.0;
+    var blue = misty.Get("blue")/10.0;
+    for (var i = 10; i >=0 ; i=i-1) { 
+        misty.ChangeLED(Math.floor(i*red),Math.floor(i*green),Math.floor(i*blue));
+        misty.Pause(50);
+    }
+    for (var i =0; i <=10 ; i=i+1) { 
 		misty.ChangeLED(Math.floor(i*14.8),0,Math.floor(i*21.1));
-		misty.Pause(100);
-	}
-    
+		misty.Pause(50);
+    }
+    misty.Set("red", 148);
+    misty.Set("green", 0);
+    misty.Set("blue", 211);
+}
+
+function red_up(){
+    var red = misty.Get("red")/10.0;
+    var green = misty.Get("green")/10.0;
+    var blue = misty.Get("blue")/10.0;
+    for (var i = 10; i >=0 ; i=i-1) { 
+        misty.ChangeLED(Math.floor(i*red),Math.floor(i*green),Math.floor(i*blue));
+        misty.Pause(50);
+    }
+    for (var i =0; i <=10 ; i=i+1) { 
+		misty.ChangeLED(Math.floor(i*20),0,0);
+		misty.Pause(50);
+    }
+    misty.Set("red", 200);
+    misty.Set("green", 0);
+    misty.Set("blue", 0);
+}
+
+function blue_up(){
+    var red = misty.Get("red")/10.0;
+    var green = misty.Get("green")/10.0;
+    var blue = misty.Get("blue")/10.0;
+    for (var i = 10; i >=0 ; i=i-1) { 
+        misty.ChangeLED(Math.floor(i*red),Math.floor(i*green),Math.floor(i*blue));
+        misty.Pause(50);
+    }
+    for (var i =0; i <=10 ; i=i+1) { 
+		misty.ChangeLED(0,0,Math.floor(i*20));
+		misty.Pause(50);
+    }
+    misty.Set("red", 0);
+    misty.Set("green", 0);
+    misty.Set("blue", 200);
 }
  
 // ------------------------Loop----------------------------------------------------------
@@ -288,6 +320,11 @@ while (true) {
 		misty.Set("inTouch", false);
 		misty.Set("eyeMemory", "Homeostasis.png");
 		misty.SetHeadPosition("roll", 0, 100);
+		if (misty.Get("lookAround")){
+			purple_up();
+		} else {
+			green_up();
+		}
 		registerFaceFollow();
 	}
 	
@@ -321,4 +358,14 @@ function gaussianRandom(start, end) {
 
 function map (num, in_min, in_max, out_min, out_max) {
 	return (num - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-  }
+}
+
+function registerFaceFollow(){
+	misty.AddPropertyTest("FaceFollow", "PersonName", "exists", "", "string");
+	misty.RegisterEvent("FaceFollow", "ComputerVision", 400, true);
+}
+
+function registerCaptouch(){
+	misty.AddReturnProperty("Touched", "sensorName");
+	misty.RegisterEvent("Touched", "TouchSensor", 250 ,true);
+}
