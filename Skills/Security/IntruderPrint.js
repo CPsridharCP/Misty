@@ -74,9 +74,13 @@ function _FaceRec(data){
                     misty.Set("falseAlarm", 0);
                     
                     // pitch, roll, yaw
-                    misty.MoveHeadPosition(-1, -4, -3, 100,0,3000);
-                    misty.MoveHeadPosition(-1, 4, 3, 100,0,3000);
-                    misty.MoveHeadPosition(-1, 0, 0, 100,0,3000);
+                    misty.PlayAudioClip("intruder.wav");
+                    misty.MoveHeadPosition(-1, -3, -2, 100,0,2000);
+                    misty.PlayAudioClip("intruder.wav");
+                    misty.MoveHeadPosition(-1, 3, 2, 100,0,2000);
+                    misty.PlayAudioClip("intruder.wav");
+                    misty.MoveHeadPosition(-1, 0, 0, 100,0,2000);
+                    misty.PlayAudioClip("ybln.wav");
 
                     // Register Bump Sensors
                     registerBumpSensors();

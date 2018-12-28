@@ -68,7 +68,7 @@ def switch_to_printer_network():
                 os.system("echo Reattempting connecting to printer from switch_to_printer_n func")
                 switch_to_printer_network()
                 
-            time.sleep(0.5)
+            # time.sleep(0.5)
         os.system("echo Connected to Printer Network - wait 15 sec start"+str(time.time()))
         time.sleep(15)
     else:
