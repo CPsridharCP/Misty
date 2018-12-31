@@ -15,6 +15,7 @@
 
 misty.Debug("Intruder alert skill started");
 
+misty.Debug("Centering Head");
 misty.MoveHeadPosition(0, 0, 0, 100);
 
 misty.Set("StartTime",(new Date()).toUTCString());
@@ -39,7 +40,7 @@ registerBumpSensors();
 function _FaceRec(data){
     //misty.Debug("IN");
     try{
-        misty.Debug(data.PropertyTestResults[0].PropertyParent.Distance);
+        //misty.Debug(data.PropertyTestResults[0].PropertyParent.Distance);
         if (data.PropertyTestResults[0].PropertyParent.Distance < 180){
 
             // if (misty.Get("hey")){
@@ -75,10 +76,13 @@ function _FaceRec(data){
                     
                     // pitch, roll, yaw
                     misty.PlayAudioClip("intruder.wav");
+                    
                     misty.MoveHeadPosition(-1, -3, -2, 100,0,2000);
                     misty.PlayAudioClip("intruder.wav");
+                    
                     misty.MoveHeadPosition(-1, 3, 2, 100,0,2000);
                     misty.PlayAudioClip("intruder.wav");
+                    
                     misty.MoveHeadPosition(-1, 0, 0, 100,0,2000);
                     misty.PlayAudioClip("ybln.wav");
 

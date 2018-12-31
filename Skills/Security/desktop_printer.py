@@ -1,3 +1,16 @@
+# *    Copyright 2018 Misty Robotics, Inc.
+# *    Licensed under the Apache License, Version 2.0 (the "License");
+# *    you may not use this file except in compliance with the License.
+# *    You may obtain a copy of the License at
+# *
+# *    http://www.apache.org/licenses/LICENSE-2.0
+# *
+# *    Unless required by applicable law or agreed to in writing, software
+# *    distributed under the License is distributed on an "AS IS" BASIS,
+# *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# *    See the License for the specific language governing permissions and
+# *    limitations under the License.
+
 from wireless import Wireless
 import dweepy
 import time
@@ -6,6 +19,7 @@ import cv2
 from skimage import io
 import os
 import subprocess
+import random
 # from gpiozero import Button, LED
 
 wireless = Wireless()
@@ -13,10 +27,12 @@ robot_network_ssid = 'TP-Link_5958_5G'
 robot_network_password = '30563452'
 printer_ssid = 'INSTAX-01558927'
 printer_password = '1111'
-robot_ip = "192.168.0.102"
+robot_ip = "192.168.0.104"
 
+pngs = ["Busted.png","Gotcha.png","Wanted.png"]
+image_index = random.randint(0,len(pngs)-1)
 def prepare_image():
-
+    global pngs,image_index
     #url_path = "http://"+robot_ip+"/api/alpha/camera?Base64=false"    
     url_path = "http://"+robot_ip+"/api/alpha/image?FileName=Intruder.jpg&Base64=false"  
     image = io.imread(url_path)
@@ -34,8 +50,13 @@ def prepare_image():
     output = image.copy()
     output = cv2.addWeighted(overlay, 1.0, output, 1.0, 0)
     #cv2.imshow('test_overlay',output)
+    # --------PNG Selection----------
+    png = pngs[image_index]
+    image_index += 1
+    image_index %= len(pngs)
+    # ---------PNG Overlay-----------
     img1 = output
-    img2 = cv2.imread('Busted.png',cv2.IMREAD_UNCHANGED)
+    img2 = cv2.imread(png,cv2.IMREAD_UNCHANGED)
     img2 = cv2.resize(img2, (0,0), fx=0.5, fy=0.5)
     (lH, lW) = img2.shape[:2]
     (B, G, R, A) = cv2.split(img2)
@@ -44,6 +65,7 @@ def prepare_image():
     R = cv2.bitwise_and(R, R, mask=A)
     img2 = cv2.merge([B, G, R])
 
+    # ---------PNG Placement----------
     busted_h = int(w/2.0)
     busted_v = 600
     
