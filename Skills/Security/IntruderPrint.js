@@ -16,7 +16,9 @@
 misty.Debug("Intruder alert skill started");
 
 misty.Debug("Centering Head");
-misty.MoveHeadPosition(0, 0, 0, 100);
+misty.MoveHeadPosition(-5, 0, 0, 100);
+misty.MoveArmPosition("left", 0, 45);
+misty.MoveArmPosition("right", 0, 45);
 
 misty.Set("StartTime",(new Date()).toUTCString());
 misty.Set("Initiated",false);
@@ -54,7 +56,10 @@ function _FaceRec(data){
                 misty.Debug("FalseAlarm_Avoided");
                 if (misty.Get("falseAlarm")>3){ 
                     misty.UnregisterEvent("FaceRec");
-                    misty.Set("StartTime",(new Date()).toUTCString());       
+                    misty.Set("StartTime",(new Date()).toUTCString());   
+                    misty.Set("Initiated",true);
+                    misty.Set("eyeMemory", "Disdainful.png");
+                    blink_now();    
                     misty.PlayAudioClip("hey.wav",0,500);
                     misty.PlayAudioClip("aystbh.wav",0,1000);
                     //misty.Set("aystbh", false);
@@ -69,21 +74,19 @@ function _FaceRec(data){
                     misty.SendExternalRequest("POST", "https://7jzrmzmsr5.execute-api.us-west-1.amazonaws.com/default/cp_python_learn_fn_name",null,null,null,"{}");
                     misty.SendExternalRequest("POST", "https://dweet.io/dweet/for/misty",null,null,null,"{\"status\":\"Intruder_Alarrm_On\"}");
                     
-                    misty.Set("Initiated",true);
-                    misty.Set("eyeMemory", "Disdainful.png");
-                    blink_now();
+                    
                     misty.Set("falseAlarm", 0);
                     
                     // pitch, roll, yaw
                     misty.PlayAudioClip("intruder.wav");
                     
-                    misty.MoveHeadPosition(-1, -3, -2, 100,0,2000);
+                    misty.MoveHeadPosition(-5, -3, -2, 100,0,2000);
                     misty.PlayAudioClip("intruder.wav");
                     
-                    misty.MoveHeadPosition(-1, 3, 2, 100,0,2000);
+                    misty.MoveHeadPosition(-5, 3, 2, 100,0,2000);
                     misty.PlayAudioClip("intruder.wav");
                     
-                    misty.MoveHeadPosition(-1, 0, 0, 100,0,2000);
+                    misty.MoveHeadPosition(-5, 0, 0, 100,0,2000);
                     misty.PlayAudioClip("ybln.wav");
 
                     // Register Bump Sensors
@@ -142,8 +145,9 @@ function _Bumped(data) {
 
     if (sensor == "Bump_RearRight" || sensor == "Bump_RearLeft"){
         
-        misty.MoveHeadPosition(0, 0, 0, 100);
+        misty.MoveHeadPosition(-5, 0, 0, 100);
         misty.MoveArmPosition("left", 0, 45);
+        misty.MoveArmPosition("right", 0, 45);
         
         misty.Set("eyeMemory", "Homeostasis.png");
         flags_on();
