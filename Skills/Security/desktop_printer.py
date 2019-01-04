@@ -31,8 +31,9 @@ robot_ip = "192.168.0.104"
 
 pngs = ["Busted.png","Gotcha.png","Wanted.png"]
 image_index = random.randint(0,len(pngs)-1)
+face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml') 
 def prepare_image():
-    global pngs,image_index
+    global pngs,image_index,face_cascade
     #url_path = "http://"+robot_ip+"/api/alpha/camera?Base64=false"    
     url_path = "http://"+robot_ip+"/api/alpha/image?FileName=Intruder.jpg&Base64=false"  
     image = io.imread(url_path)
@@ -40,6 +41,10 @@ def prepare_image():
     image = cv2.merge([r,g,b])
     image = cv2.resize(image, (0,0), fx=0.5, fy=0.5) 
     (h, w) = image.shape[:2]
+    # --------Face Detection--------
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) 
+    faces = face_cascade.detectMultiScale(gray, 1.3, 5) 
+    # -------Misty Logo Overlay-----
     logo = cv2.imread("white.png",cv2.IMREAD_UNCHANGED)
     logo = cv2.resize(logo, (0,0), fx=0.1, fy=0.1)
     (lH, lW) = logo.shape[:2]
@@ -66,8 +71,16 @@ def prepare_image():
     img2 = cv2.merge([B, G, R])
 
     # ---------PNG Placement----------
-    busted_h = int(w/2.0)
-    busted_v = 600
+    if len(faces)==1:
+        x_f,y_f,w_f,h_f = faces[0]
+        busted_h = int(w/2.0)
+        busted_v = y_f + h_f + 20
+        # -----Logo and PNG Overlap avoidance--------
+        if busted_v > 600:
+            busted_v = int(lH/4.0)
+    else:
+        busted_h = int(w/2.0)
+        busted_v = 600
     
     rows,cols,channels = img2.shape
     roi = img1[busted_v:busted_v+rows, busted_h-int(lW/2.0):busted_h-int(lW/2.0)+cols ]
