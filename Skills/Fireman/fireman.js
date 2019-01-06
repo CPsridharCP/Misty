@@ -110,7 +110,8 @@ function _StringMessage(data) {
 
 			var obj = JSON.parse(data.AdditionalResults[0].Message);
 			var temp    = obj.temperature;
-			let threshold = 26.0; ///////////////////////////////////THRESHOLD
+			var kPa     = obj.pressure;
+			let threshold = 82.0; ///////////////////////////////////THRESHOLD
 			var alarm = 0;
 
 			if (misty.Get("wait_to_threshold")){
@@ -185,7 +186,7 @@ function _StringMessage(data) {
 				}
 				misty.Set("pastState", alarm);
 			}
-			misty.SendExternalRequest("POST", "https://dweet.io/dweet/for/misty-fire-security",null,null,null,"{\"temperature\":"+temp.toString()+",\"alarm\":"+alarm.toString()+"}");
+			misty.SendExternalRequest("POST", "https://dweet.io/dweet/for/misty-fire-security",null,null,null,"{\"temperature\":"+temp.toString()+",\"pressure\":"+kPa.toString()+",\"alarm\":"+alarm.toString()+"}");
 			misty.Debug(temp);
 
 			misty.Set("past", temp);
@@ -219,7 +220,7 @@ while (true) {
 
 	// Wander - tof
 	if (misty.Get("tofTriggered")){
-        if (secondsPast(misty.Get("tofTriggeredAt")) > 5.0){
+        if (secondsPast(misty.Get("tofTriggeredAt")) > 4.0){
             misty.Set("tofTriggered", false);
             registerAll();
         }
@@ -277,8 +278,8 @@ function _BackTOF(data) {
 	misty.Debug(JSON.stringify("Distance: " + backTOFData.DistanceInMeters)); 
 	misty.Debug(JSON.stringify("Sensor Position: " + backTOFData.SensorPosition));
 	misty.Drive(0,0,0, 200);
-	misty.DriveTime(34, 0, 3000);
-	misty.Pause(3000);
+	misty.DriveTime(35, 0, 2500);
+	misty.Pause(2500);
 	misty.Set("cannotDrive",false);
 	
 }
@@ -312,8 +313,8 @@ function _LeftTOF(data) {
 	misty.Drive(0,0,0, 200);
 	misty.DriveTime(-35, 0, 2500);
 	misty.Pause(1000);
-	misty.DriveTime(0, -45, 3000);	
-	misty.Pause(3000);
+	misty.DriveTime(0, -45, 2500);	
+	misty.Pause(2500);
 	misty.Set("cannotDrive",false);
 	
 }
@@ -329,11 +330,50 @@ function _RightTOF(data) {
 	misty.Drive(0,0,0, 200);
 	misty.DriveTime(-35, 0, 2500);
 	misty.Pause(1000);
-	misty.DriveTime(0, 45, 3000);	
-	misty.Pause(3000);
+	misty.DriveTime(0, 45, 2500);	
+	misty.Pause(2500);
 	misty.Set("cannotDrive",false);
 	
 }
+
+/////////////////// Additions BUMP sensor
+function _Bumped(data) {
+
+	unregisterAll();
+	misty.Set("tofTriggeredAt",(new Date()).toUTCString());
+    misty.Set("tofTriggered", true);
+    var sensor = data.AdditionalResults[0];
+	misty.Debug(sensor);
+	//    Bump_FrontRight
+	//    Bump_FrontLeft
+	//    Bump_RearLeft
+	//    Bump_RearRight
+	misty.Drive(0,0,0, 200);
+    if (sensor == "Bump_FrontRight"){
+		misty.DriveTime(-35, 0, 2500);
+		misty.Pause(1000);
+		misty.DriveTime(0, 45, 2500);	
+		misty.Pause(2500);
+	} else if (sensor == "Bump_FrontLeft"){
+		misty.DriveTime(-35, 0, 2500);
+		misty.Pause(1000);
+		misty.DriveTime(0, -45, 2500);	
+		misty.Pause(2500);
+	} else if (sensor == "Bump_RearLeft"){
+		misty.DriveTime(35, 0, 2500);
+		misty.Pause(1000);
+		misty.DriveTime(0, -45, 2500);
+		misty.Pause(2500);
+	} else if (sensor == "Bump_RearRight"){
+		misty.DriveTime(35, 0, 2500);
+		misty.Pause(1000);
+		misty.DriveTime(0, 45, 2500);	
+		misty.Pause(2500);
+	} else {}
+
+	misty.Set("cannotDrive",false);
+        
+ }
 
 function registerAll(){
 
@@ -353,7 +393,11 @@ function registerAll(){
 	misty.AddPropertyTest("BackTOF", "DistanceInMeters", "<=", 0.20, "double"); 
 	misty.RegisterEvent("BackTOF", "TimeOfFlight", 0, false);
 
+	misty.AddReturnProperty("Bumped", "sensorName",); /////////////////// Additions BUMP sensor
+    misty.RegisterEvent("Bumped", "BumpSensor", 250 ,true); ///////////// Additions BUMP sensor
+
 }
+
 
 function unregisterAll(){
 
@@ -368,5 +412,8 @@ function unregisterAll(){
 	} catch(err) {}
 	try{
 		misty.UnregisterEvent("LeftTOF");
+	} catch(err) {}
+	try{
+		misty.UnregisterEvent("Bumped");  //////////////////////////////// Additions BUMP sensor
 	} catch(err) {}
 }

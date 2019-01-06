@@ -14,8 +14,8 @@ Adafruit_BMP280 bme(BMP_CS, BMP_MOSI, BMP_MISO,  BMP_SCK);
   
 void setup() {
   Serial.begin(9600);
-  pinMode(2,OUTPUT);
-  pinMode(3,OUTPUT);
+  pinMode(2,OUTPUT);//
+  pinMode(3,OUTPUT);//
   digitalWrite(2,HIGH);
   digitalWrite(3,LOW);
   
@@ -25,13 +25,11 @@ void setup() {
     //Serial.println("Could not find a valid BMP280 sensor, check wiring!");
     while (1);
   }
-
-  
 }
   
 void loop() {
-
+    //Serial.println(bme.readPressure());
     //Serial.println();
     delay(1000);
-    Serial.println("{\"temperature\":\""+String(bme.readTemperature())+"\",\"Pressure\":\""+String(bme.readPressure())+"\"}");
+    Serial.println("{\"temperature\":\""+String((bme.readTemperature()*1.8)+32)+"\",\"pressure\":\""+String(bme.readPressure()/1000.0)+"\"}");
 }
